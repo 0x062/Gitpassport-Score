@@ -18,25 +18,29 @@ async function getPassportScore() {
       headers: { 'X-API-KEY': API_KEY }
     });
 
-    const {
-      score,
-      passing_score,
-      last_score_timestamp,
-      stamps
-    } = res.data;
+    // Parse numeric values
+    const rawScore = res.data.score;
+    const score = typeof rawScore === 'string' ? parseFloat(rawScore) : rawScore;
+    const passingScore = res.data.passing_score;
+    const lastUpdated = new Date(res.data.last_score_timestamp).toLocaleString();
+    const stamps = res.data.stamps;
 
     console.log('──────────────────────────────────────────');
     console.log(`Wallet:   ${WALLET}`);
-    console.log(`Score:    ${score.toFixed(5)}   Passing: ${passing_score}`);
-    console.log(`Updated:  ${new Date(last_score_timestamp).toLocaleString()}`);
+    console.log(`Score:    ${score.toFixed(5)}   Passing: ${passingScore}`);
+    console.log(`Updated:  ${lastUpdated}`);
     console.log('──────────────────────────────────────────');
 
     // Prepare table data
-    const tableData = Object.entries(stamps).map(([provider, detail]) => ({
-      Provider: provider,
-      Score: detail.score.toFixed(5),
-      Expiry: detail.expiration_date || '-'  
-    }));
+    const tableData = Object.entries(stamps).map(([provider, detail]) => {
+      const rawDetailScore = detail.score;
+      const detailScore = typeof rawDetailScore === 'string' ? parseFloat(rawDetailScore) : rawDetailScore;
+      return {
+        Provider: provider,
+        Score: detailScore.toFixed(5),
+        Expiry: detail.expiration_date || '-'
+      };
+    });
 
     console.table(tableData);
 
