@@ -18,14 +18,28 @@ async function getPassportScore() {
       headers: { 'X-API-KEY': API_KEY }
     });
 
-    const { score, stamps, passing_score, last_score_timestamp } = res.data;
-    console.log(`✅ [${WALLET}] Score: ${score} (passing: ${passing_score})`);
-    console.log(`  last updated: ${new Date(last_score_timestamp).toLocaleString()}`);
-    console.log('Detail stamps:');
-    for (const [provider, detail] of Object.entries(stamps)) {
-      console.log(` • ${provider}: ${detail.score}` +
-                  (detail.expiration_date ? ` (exp: ${detail.expiration_date})` : ''));
-    }
+    const {
+      score,
+      passing_score,
+      last_score_timestamp,
+      stamps
+    } = res.data;
+
+    console.log('──────────────────────────────────────────');
+    console.log(`Wallet:   ${WALLET}`);
+    console.log(`Score:    ${score.toFixed(5)}   Passing: ${passing_score}`);
+    console.log(`Updated:  ${new Date(last_score_timestamp).toLocaleString()}`);
+    console.log('──────────────────────────────────────────');
+
+    // Prepare table data
+    const tableData = Object.entries(stamps).map(([provider, detail]) => ({
+      Provider: provider,
+      Score: detail.score.toFixed(5),
+      Expiry: detail.expiration_date || '-'  
+    }));
+
+    console.table(tableData);
+
   } catch (err) {
     const msg = err.response?.data?.detail || err.message;
     console.error('❌ Error fetching Passport score:', msg);
